@@ -1,0 +1,103 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: User and role for organization owner access and org management.
+
+# After applying this template do the following:
+# 1. Add a credential to the user
+# 2. Add an mfa device to the user
+
+Parameters: 
+  OrganizationOwnerUserName:
+    Description: Name for the organization owner account
+    Type: String
+    Default: organization-owner
+  OrganizationAdminRoleName:
+    Description: Name for the organization admin role
+    Type: String
+    Default: organization-admin
+
+Resources: 
+  OrganizationOwner:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: !Ref OrganizationOwnerUserName
+      Path: /
+      Policies:
+        - PolicyName: "deny-non-mfa"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Deny"
+                Action: "*"
+                Resource: "*"
+                Condition: 
+                  BoolIfExists:
+                    "aws:MultiFactorAuthPresent": "false"
+        - PolicyName: "assume-org-admin-role"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action: "sts:AssumeRole"
+                Resource: "*"
+                Condition: 
+                  Bool:
+                    "aws:MultiFactorAuthPresent": "true"
+
+  OrganizationAdminRole: 
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Ref OrganizationAdminRoleName
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS:
+                - !GetAtt OrganizationOwner.Arn
+            Action:
+              - 'sts:AssumeRole'
+            Condition: 
+              Bool: 
+                aws:MultiFactorAuthPresent: 'true'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSOrganizationsFullAccess
+        - arn:aws:iam::aws:policy/AWSCloudFormationFullAccess
+        - arn:aws:iam::aws:policy/IAMReadOnlyAccess
+      Policies:
+        - PolicyName: "write-to-state-bucket"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action: "s3:*"
+                Resource: 
+                  - !GetAtt OrganizationStateBucket.Arn
+                  - !Sub "${OrganizationStateBucket.Arn}/*"
+
+  OrganizationStateBucket:
+    Type: 'AWS::S3::Bucket'
+    DeletionPolicy: Retain
+    Properties:
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+Outputs:
+  OrganizationOwnerUserName:
+    Description: Name of the organization owner IAM user.
+    Value: !Ref OrganizationOwner
+    Export: 
+      Name: OrganizationOwnerUserName
+  OrganizationAdminRoleName:
+    Description: Name of the organization owner IAM user.
+    Value: !Ref OrganizationAdminRole
+    Export: 
+      Name: OrganizationAdminRoleName
+  OrganizationStateBucketName:
+    Description: Name of the bucket to store Organization Terraform state in.
+    Value: !Ref OrganizationStateBucket
+    Export: 
+      Name: OrganizationStateBucketName

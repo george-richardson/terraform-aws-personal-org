@@ -1,0 +1,41 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Provides administrator access role with enforced MFA.
+
+Parameters: 
+  RoleName:
+    Description: Name of the role.
+    Type: String
+    Default: OrganizationOwner
+  PrivilegedEntity: 
+    Description: Account ID or user/role ARN of the entity able to assume this role.
+    Type: String
+
+Resources: 
+  Role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Ref RoleName
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal: 
+              AWS: !Ref PrivilegedEntity
+            Action: "sts:AssumeRole"
+            Condition: 
+              Bool:
+                "aws:MultiFactorAuthPresent": "true"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AdministratorAccess"
+
+Outputs:
+  RoleName:
+    Description: Name of the admin role.
+    Value: !Ref Role
+    Export: 
+      Name: OrganizationOwnerRoleName
+  RoleARN:
+    Description: ARN of the admin role.
+    Value: !GetAtt Role.Arn
+    Export: 
+      Name: OrganizationOwnerRoleArn
