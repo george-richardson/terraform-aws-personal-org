@@ -73,6 +73,15 @@ Resources:
                 Resource: 
                   - !GetAtt OrganizationStateBucket.Arn
                   - !Sub "${OrganizationStateBucket.Arn}/*"
+        - PolicyName: "deny-cloudformation-self-target"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Deny"
+                Action: "cloudformation:*"
+                Resource: 
+                  - !Sub "arn:aws:cloudformation:*:${AWS::AccountId}:stackset-target/*/${AWS::AccountId}"
+                  - !Ref AWS::StackId
 
   OrganizationStateBucket:
     Type: 'AWS::S3::Bucket'

@@ -13,6 +13,14 @@ if [ ! -f "bootstrap.yml" ]; then
   exit 1
 fi
 
+if ! command -v qrencode > /dev/null ; then 
+  echo "WARNING: 'qrencode' utility not found on PATH."
+  echo "This script will prompt you to configure a virtual MFA device."
+  echo "If you plan to use a mobile app as your virtual MFA device this process will be easier if you have the 'qrencode' utility installed on your PATH."
+  echo "Press ENTER to continue or Control-C to cancel."
+  read
+fi
+
 echo "This script will guide you through deploying the bootstrap cloudformation template and configuring your organization owner user with access keys and MFA. You will be prompted for input at various points. This script will use your default AWS credentials and region configuration."
 echo "Press ENTER to continue."
 read
@@ -65,8 +73,9 @@ MFA_SERIAL=$(aws iam create-virtual-mfa-device \
 )
 
 # Show MFA private key to user
+command -v qrencode > /dev/null && qrencode "$(cat privatekey)" -t UT8
 echo "Private Key: $(cat privatekey)"
-echo "Use the above private string to set up a new virtual MFA device. After continuing you will be prompted to enter two consecutive validation TOTP codes from your new device. This private key will not be shown again."
+echo "Use the above private key to set up a new virtual MFA device. After continuing you will be prompted to enter two consecutive validation TOTP codes from your new device. This private key will not be shown again."
 echo "Press ENTER to continue."
 read
 rm privatekey
