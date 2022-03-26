@@ -44,3 +44,9 @@ variable "override_policy_documents" {
   description = "List of JSON SCP policy documents that will be merged with the generated SCP."
   default     = []
 }
+
+variable "protected_iam_resources" {
+  type        = list(string)
+  description = "List of IAM ARNs which will be protected from modification by all users."
+  default     = []
+}

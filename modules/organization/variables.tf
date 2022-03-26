@@ -17,9 +17,17 @@ variable "enabled_policy_types" {
   ]
 }
 
-variable "bootstrap_stack_name" {
+# IAM
+
+variable "organization_owner_role_name" {
   type        = string
-  description = "Name of the Cloudformation bootstrap stack which deploys the organization owner user."
+  description = "Name of the IAM role that will be created in all child accounts. If not set then the value of organization_owner_user_name will be used."
+  default     = ""
+}
+
+variable "organization_owner_user_name" {
+  type        = string
+  description = "Name of the IAM user that will be able to access all child accounts. This user must already exist, the module will not create it."
 }
 
 # SCP
@@ -33,7 +41,7 @@ variable "deny_modifying_owner_role" {
 variable "block_root_user" {
   type        = bool
   description = "Should the root user have all access blocked?"
-  default     = false
+  default     = true
 }
 
 variable "allow_regions" {
@@ -63,5 +71,11 @@ variable "allow_rds_instance_types" {
 variable "override_policy_documents" {
   type        = list(string)
   description = "List of JSON SCP policy documents that will be merged with the generated SCP."
+  default     = []
+}
+
+variable "protected_iam_resources" {
+  type        = list(string)
+  description = "List of IAM ARNs which will be protected from modification by all users."
   default     = []
 }

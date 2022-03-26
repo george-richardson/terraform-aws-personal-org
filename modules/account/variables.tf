@@ -24,8 +24,9 @@ variable "budget_notification_emails" {
 }
 
 variable "budget_notification_type" {
-  type    = string
-  default = "FORECASTED"
+  type        = string
+  description = "Notify on either 'FORECASTED' or 'ACTUAL' spending."
+  default     = "FORECASTED"
   validation {
     condition     = can(regex("^(FORECASTED|ACTUAL-.*)$", var.budget_notification_type))
     error_message = "Budget notification type must match either 'ACTUAL' or 'FORECASTED'."
@@ -75,5 +76,11 @@ variable "allow_rds_instance_types" {
 variable "override_policy_documents" {
   type        = list(string)
   description = "List of JSON SCP policy documents that will be merged with the generated SCP."
+  default     = []
+}
+
+variable "protected_iam_resources" {
+  type        = list(string)
+  description = "List of IAM ARNs which will be protected from modification by all users."
   default     = []
 }

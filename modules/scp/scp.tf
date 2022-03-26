@@ -6,6 +6,7 @@ locals {
     || length(var.allow_ec2_instance_types) != 0
     || length(var.allow_rds_instance_types) != 0
     || length(var.override_policy_documents) != 0
+    || length(var.protected_iam_resources) != 0
   )
 }
 
@@ -158,6 +159,17 @@ data "aws_iam_policy_document" "scp" {
         variable = "rds:DatabaseClass"
         values   = var.allow_rds_instance_types
       }
+    }
+  }
+
+  dynamic "statement" {
+    # Only include this statement if protected_iam_resources is set
+    for_each = length(var.protected_iam_resources) == 0 ? [] : ["true"]
+    content {
+      sid       = "DenyModifyingIAMResources"
+      effect    = "Deny"
+      actions   = ["iam:*"]
+      resources = [var.protected_iam_resources]
     }
   }
 }

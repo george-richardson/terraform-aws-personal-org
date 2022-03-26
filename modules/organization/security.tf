@@ -1,11 +1,7 @@
-data "aws_cloudformation_stack" "bootstrap" {
-  name = var.bootstrap_stack_name
-}
-
 data "aws_region" "current" {}
 
 data "aws_iam_user" "organization_owner" {
-  user_name = data.aws_cloudformation_stack.bootstrap.outputs.OrganizationOwnerUserName
+  user_name = var.organization_owner_user_name
 }
 
 # Stack set for organization-owner role in child accounts.
@@ -17,7 +13,7 @@ resource "aws_cloudformation_stack_set" "organization_owner_role" {
   capabilities     = ["CAPABILITY_NAMED_IAM"]
 
   parameters = {
-    RoleName         = data.aws_iam_user.organization_owner.user_name
+    RoleName         = var.organization_owner_role_name != "" ? var.organization_owner_role_name : data.aws_iam_user.organization_owner.user_name
     PrivilegedEntity = data.aws_iam_user.organization_owner.arn
   }
 
