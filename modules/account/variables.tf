@@ -16,6 +16,16 @@ variable "close_on_deletion" {
   default     = true
 }
 
+variable "iam_user_access_to_billing" {
+  type = string
+  description = "Allow IAM resources access to billing. Valid values are 'ALLOW' or 'DENY', by default a null value will match to 'ALLOW'."
+  default = null
+  validation {
+    condition     = can(regex("^(ALLOW|DENY)$", var.iam_user_access_to_billing)) || var.iam_user_access_to_billing == null
+    error_message = "IAM user access to billing must match either 'ALLOW', 'DENY' or null."
+  }
+}
+
 # Budget
 
 variable "budget" {
@@ -35,7 +45,7 @@ variable "budget_notification_type" {
   description = "Notify on either 'FORECASTED' or 'ACTUAL' spending."
   default     = "FORECASTED"
   validation {
-    condition     = can(regex("^(FORECASTED|ACTUAL-.*)$", var.budget_notification_type))
+    condition     = can(regex("^(FORECASTED|ACTUAL)$", var.budget_notification_type))
     error_message = "Budget notification type must match either 'ACTUAL' or 'FORECASTED'."
   }
 }
