@@ -1,6 +1,6 @@
 resource "aws_budgets_budget" "account" {
-  # Only create a budget if there is a non zero budget value.
-  for_each     = var.budget != 0 ? [true] : []
+  # Only create a budget if there is a non default budget value.
+  for_each     = var.budget != -1 ? [true] : []
   account_id   = aws_organizations_account.account.id
   name         = var.name
   budget_type  = "COST"

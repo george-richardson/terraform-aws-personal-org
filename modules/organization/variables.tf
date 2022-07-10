@@ -17,24 +17,11 @@ variable "enabled_policy_types" {
   ]
 }
 
-# IAM
-
-variable "organization_owner_role_name" {
-  type        = string
-  description = "Name of the IAM role that will be created in all child accounts. If not set then the value of organization_owner_user_name will be used."
-  default     = ""
-}
-
-variable "organization_owner_user_name" {
-  type        = string
-  description = "Name of the IAM user that will be able to access all child accounts. This user must already exist, the module will not create it."
-}
-
 # SCP
 
-variable "deny_modifying_owner_role" {
+variable "block_organization_role_modification" {
   type        = bool
-  description = "Should the organization owner role be protected from modification/deletion?"
+  description = "Should modification of OrganizationAccountAccessRole in child accounts be blocked?"
   default     = true
 }
 

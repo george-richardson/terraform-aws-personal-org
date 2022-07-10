@@ -38,10 +38,9 @@ Resources:
             Statement:
               - Effect: "Allow"
                 Action: "sts:AssumeRole"
-                Resource: "*"
-                Condition: 
-                  Bool:
-                    "aws:MultiFactorAuthPresent": "true"
+                Resource: 
+                  - "arn:aws:iam::*:role/OrganizationAccountAccessRole"
+                  - !Sub "arn:aws:iam::${AWS::AccountId}:role/${OrganizationAdminRoleName}"
 
   OrganizationAdminRole: 
     Type: AWS::IAM::Role
@@ -61,27 +60,19 @@ Resources:
                 aws:MultiFactorAuthPresent: 'true'
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSOrganizationsFullAccess
-        - arn:aws:iam::aws:policy/AWSCloudFormationFullAccess
-        - arn:aws:iam::aws:policy/IAMReadOnlyAccess
       Policies:
         - PolicyName: "write-to-state-bucket"
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: "Allow"
-                Action: "s3:*"
+                Action: "s3:ListBucket"
                 Resource: 
                   - !GetAtt OrganizationStateBucket.Arn
-                  - !Sub "${OrganizationStateBucket.Arn}/*"
-        - PolicyName: "deny-cloudformation-self-target"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: "Deny"
-                Action: "cloudformation:*"
+              - Effect: "Allow"
+                Action: "s3:*Object"
                 Resource: 
-                  - !Sub "arn:aws:cloudformation:*:${AWS::AccountId}:stackset-target/*/${AWS::AccountId}"
-                  - !Ref AWS::StackId
+                  - !Sub "${OrganizationStateBucket.Arn}/*"
 
   OrganizationStateBucket:
     Type: 'AWS::S3::Bucket'
@@ -98,15 +89,9 @@ Outputs:
   OrganizationOwnerUserName:
     Description: Name of the organization owner IAM user.
     Value: !Ref OrganizationOwner
-    Export: 
-      Name: OrganizationOwnerUserName
   OrganizationAdminRoleName:
     Description: Name of the organization owner IAM user.
     Value: !Ref OrganizationAdminRole
-    Export: 
-      Name: OrganizationAdminRoleName
   OrganizationStateBucketName:
     Description: Name of the bucket to store Organization Terraform state in.
     Value: !Ref OrganizationStateBucket
-    Export: 
-      Name: OrganizationStateBucketName

@@ -10,11 +10,18 @@ variable "email" {
   description = "Email address to use for the new account."
 }
 
+variable "close_on_deletion" {
+  type        = bool
+  description = "Whether to close the account when deleted from the organization."
+  default     = true
+}
+
 # Budget
 
 variable "budget" {
   type        = number
-  description = "Threshold for monthly spending in USD to alert at."
+  description = "Threshold for monthly spending in USD to alert at. Omit or use value -1 to disable."
+  default     = -1
 }
 
 variable "budget_notification_emails" {

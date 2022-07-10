@@ -7,8 +7,8 @@ A set of modules that make running a single user AWS Organization easier.
 ### Features
 
 * Single user entry point for all child accounts.
-  * Roles are automatically deployed into child accounts for assumption by a organization administrator user. 
-  * Child account roles are protected from deletion (by defau lt).
+  * Default deployed OrganizationAccountAccessRole is used for assumption by a organization administrator user into child accounts.
+  * Child account OrganizationAccountAccessRoles are protected from deletion (by default).
   * Child account root user access is blocked (by default).
 * Separate Organization management role.
   * Limited access to management account to manage the Organization and save Terraform state.
@@ -48,8 +48,6 @@ This is the minimal config to create an Organization.
 module "organization" {
   source  = "george-richardson/personal-org/aws//modules/organization"
   version = "1.0.0"
-
-  organization_owner_role_name = "george" # This user must already exist
 }
 ```
 
@@ -60,7 +58,6 @@ module "organization" {
   source  = "george-richardson/personal-org/aws//modules/organization"
   version = "1.0.0"
 
-  organization_owner_role_name = "george" 
   allow_regions = [ "eu-west-1" ]
 }
 ```
@@ -75,8 +72,6 @@ This is the minimal config to create an Organizational Unit.
 module "organization" {
   source  = "george-richardson/personal-org/aws//modules/organization"
   version = "1.0.0"
-
-  organization_owner_role_name = "george" # This user must already exist
 }
 
 module "organizational_unit" {
@@ -193,4 +188,4 @@ Although the MIT license allows for commercial use, I would highly recommend aga
 Due to the bureaucratic and time consuming nature of provisioning and deleting organizations and 
 accounts I am unlikely to investigate issues that don't personally affect me. Code contributions for bug fixes are always welcome!
 
-If you wish to add a new feature please [contact me](https://gjhr.me/contact.html) before starting work to check if I will be willing to merge. 
+If you wish to add a new feature please [contact me](https://gjhr.me/contact.html) before starting work to check if I will be willing to merge. Feel free to fork!
