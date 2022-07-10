@@ -7,8 +7,7 @@ variable "name" {
 
 variable "parent_id" {
   type        = string
-  description = "ID of the organizational unit this account should be a part of."
-  default     = null
+  description = "ID of the organizational unit this organizational unity should be a child of."
 }
 
 # SCP
