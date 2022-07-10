@@ -17,9 +17,9 @@ variable "close_on_deletion" {
 }
 
 variable "iam_user_access_to_billing" {
-  type = string
+  type        = string
   description = "Allow IAM resources access to billing. Valid values are 'ALLOW' or 'DENY', by default a null value will match to 'ALLOW'."
-  default = null
+  default     = null
   validation {
     condition     = can(regex("^(ALLOW|DENY)$", var.iam_user_access_to_billing)) || var.iam_user_access_to_billing == null
     error_message = "IAM user access to billing must match either 'ALLOW', 'DENY' or null."

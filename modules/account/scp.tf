@@ -1,7 +1,7 @@
 module "scp" {
   source = "../scp"
 
-  name                      = var.name
+  name                      = "${var.name}-account"
   attachments               = [aws_organizations_account.account.id]
   block_root_user           = var.block_root_user
   allow_regions             = var.allow_regions

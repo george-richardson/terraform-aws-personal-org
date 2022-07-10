@@ -3,10 +3,7 @@
 variable "aws_service_access_principals" {
   type        = list(string)
   description = "List of AWS service principal names for which you want to enable integration with your organization."
-  default = [
-    "cloudtrail.amazonaws.com",
-    "member.org.stacksets.cloudformation.amazonaws.com"
-  ]
+  default     = []
 }
 
 variable "enabled_policy_types" {
