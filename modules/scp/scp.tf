@@ -28,7 +28,7 @@ data "aws_iam_policy_document" "scp" {
   # Block root user
   dynamic "statement" {
     # Only include this statement if block_root_user is set to true
-    for_each = var.block_root_user ? ["true"] : []
+    for_each = toset(var.block_root_user ? ["true"] : [])
     content {
       sid       = "DenyRootUser"
       effect    = "Deny"
@@ -45,7 +45,7 @@ data "aws_iam_policy_document" "scp" {
   # Region restrictions
   dynamic "statement" {
     # Only include this statement if allow_regions is set
-    for_each = length(var.allow_regions) == 0 ? [] : ["true"]
+    for_each = toset(length(var.allow_regions) == 0 ? [] : ["true"])
     content {
       sid    = "DenyRegions"
       effect = "Deny"
@@ -106,7 +106,7 @@ data "aws_iam_policy_document" "scp" {
   # Service restrictions
   dynamic "statement" {
     # Only include this statement if allow_services is set
-    for_each = length(var.allow_services) == 0 ? [] : ["true"]
+    for_each = toset(length(var.allow_services) == 0 ? [] : ["true"])
     content {
       sid    = "DenyServices"
       effect = "Deny"
@@ -123,7 +123,7 @@ data "aws_iam_policy_document" "scp" {
   # Instance type restrictions
   dynamic "statement" {
     # Only include this statement if allow_ec2_instance_types is set
-    for_each = length(var.allow_ec2_instance_types) == 0 ? [] : ["true"]
+    for_each = toset(length(var.allow_ec2_instance_types) == 0 ? [] : ["true"])
     content {
       sid    = "DenyEC2InstanceTypes"
       effect = "Deny"
@@ -142,7 +142,7 @@ data "aws_iam_policy_document" "scp" {
 
   dynamic "statement" {
     # Only include this statement if allow_rds_instance_types is set
-    for_each = length(var.allow_rds_instance_types) == 0 ? [] : ["true"]
+    for_each = toset(length(var.allow_rds_instance_types) == 0 ? [] : ["true"])
     content {
       sid    = "DenyRDSInstanceTypes"
       effect = "Deny"
@@ -164,7 +164,7 @@ data "aws_iam_policy_document" "scp" {
 
   dynamic "statement" {
     # Only include this statement if protected_iam_resources is set
-    for_each = length(var.protected_iam_resources) == 0 ? [] : ["true"]
+    for_each = toset(length(var.protected_iam_resources) == 0 ? [] : ["true"])
     content {
       sid       = "DenyModifyingIAMResources"
       effect    = "Deny"
