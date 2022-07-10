@@ -169,7 +169,7 @@ data "aws_iam_policy_document" "scp" {
       sid       = "DenyModifyingIAMResources"
       effect    = "Deny"
       actions   = ["iam:*"]
-      resources = [var.protected_iam_resources]
+      resources = var.protected_iam_resources
     }
   }
 }
