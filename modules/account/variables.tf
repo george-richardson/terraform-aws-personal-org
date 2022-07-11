@@ -28,26 +28,16 @@ variable "iam_user_access_to_billing" {
 
 # Budget
 
-variable "budget" {
+variable "billing_alarm_threshold" {
   type        = number
   description = "Threshold for monthly spending in USD to alert at. Omit or use value -1 to disable."
   default     = -1
 }
 
-variable "budget_notification_emails" {
-  type        = list(string)
-  description = "Additional email addresses to send budget notifications to. The email variable will be included by default."
-  default     = []
-}
-
-variable "budget_notification_type" {
+variable "billing_alarm_sns_topic" {
   type        = string
-  description = "Notify on either 'FORECASTED' or 'ACTUAL' spending."
-  default     = "FORECASTED"
-  validation {
-    condition     = can(regex("^(FORECASTED|ACTUAL)$", var.budget_notification_type))
-    error_message = "Budget notification type must match either 'ACTUAL' or 'FORECASTED'."
-  }
+  description = "SNS topic to notify if this account breaches its spending threshold. If not set, then alarm will still be created but no action will be taken."
+  default     = ""
 }
 
 # Org

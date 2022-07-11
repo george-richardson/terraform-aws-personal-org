@@ -60,6 +60,8 @@ Resources:
                 aws:MultiFactorAuthPresent: 'true'
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSOrganizationsFullAccess
+        - arn:aws:iam::aws:policy/CloudWatchFullAccess
+        - arn:aws:iam::aws:policy/AmazonSNSFullAccess
       Policies:
         - PolicyName: "write-to-state-bucket"
           PolicyDocument:

@@ -14,6 +14,20 @@ variable "enabled_policy_types" {
   ]
 }
 
+# SNS
+
+variable "billing_alarms_topic_name" {
+  type        = string
+  description = "Name to use for the billing alarms topic."
+  default     = "billing-alarms"
+}
+
+variable "billing_alarms_email_subscribers" {
+  type        = list(string)
+  description = "List of emails to subscribe to billing alarms."
+  default     = []
+}
+
 # SCP
 
 variable "block_organization_role_modification" {
