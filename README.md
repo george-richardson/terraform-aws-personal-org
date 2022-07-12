@@ -176,8 +176,6 @@ Many email services (e.g. [gmail](https://support.google.com/a/users/answer/9308
 
 For example the addresses `joe.bloggs+aws.account.1@gmail.com` and `joe.bloggs+aws.account.2@gmail.com` can be used separately as root account email addresses, but both will send emails to the `joe.bloggs@gmail.com` inbox.
 
-If you are not able to use email aliases then the Acccount module's `budget_notification_emails` variable can be used to centralize the budget notifications. 
-
 ## License
 
 These modules are made available under an [MIT license](./LICENSE.md). 
