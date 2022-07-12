@@ -10,10 +10,11 @@ A set of modules that make running a single user AWS Organization easier.
   * Default deployed OrganizationAccountAccessRole is used for assumption by a organization administrator user into child accounts.
   * Child account OrganizationAccountAccessRoles are protected from deletion (by default).
   * Child account root user access is blocked (by default).
-* Separate Organization management role.
+  * MFA must be used to access child accounts (from bootstrap template).
+* Separate Organization management role (from bootstrap template).
   * Limited access to management account to manage the Organization and save Terraform state.
   * Must be explicitly assumed.
-* Budgets can easily be applied to accounts with a single variable for notification by email when spending is too high.
+* Billing alarms can easily be applied to accounts with notification via an SNS topic.
 * Limit organizational units or accounts to specific services or regions.
 * Limit the EC2/RDS instance types that can be used in an account or organizational unit.
 
@@ -21,9 +22,9 @@ A set of modules that make running a single user AWS Organization easier.
 
 * You are an individual.
 * You want to run multiple AWS accounts but maintain an easy way to access them without juggling credentials.
-* You are concerned with AWS billing and want an easy way to configure budget alerts.
+* You are concerned with AWS billing and want an easy way to configure billing alerts.
 * You want simple, coarse tools to limit the usage of accounts.
-* Your prime concern if an AWS account is compromised is that a hacker may spend your money.
+* Your prime concern if an AWS account is compromised is that an attacker may spend your money.
 * In general, you want to spend as little money as possible.
 
 ### When not to use these modules: 
@@ -38,7 +39,10 @@ such as [Control Tower](https://aws.amazon.com/controltower/).
 
 ## Basic Usage
 
-Before using for the first time take a look at the bootstrapping section below.
+Before using for the first time take a look at the bootstrapping section below. 
+
+> **Warning**
+> For billing alarms to work these modules must be deployed to the `us-east-1` region.
 
 ### Creating an Organization
 
@@ -47,18 +51,19 @@ This is the minimal config to create an Organization.
 ```terraform
 module "organization" {
   source  = "george-richardson/personal-org/aws//modules/organization"
-  version = "1.0.0"
+  version = ">= 1.0.0"
 }
 ```
 
-This config limits the entire Organization to only allow actions in the eu-west-1 region.
+This config limits the entire Organization to only allow actions in the eu-west-1 region and adds an email subscriber for the billing alarms topic.
 
 ```terraform
 module "organization" {
   source  = "george-richardson/personal-org/aws//modules/organization"
-  version = "1.0.0"
+  version = ">= 1.0.0"
 
-  allow_regions = [ "eu-west-1" ]
+  allow_regions                    = [ "eu-west-1" ]
+  billing_alarms_email_subscribers = ["george@example.org"]
 }
 ```
 
@@ -71,14 +76,15 @@ This is the minimal config to create an Organizational Unit.
 ```terraform
 module "organization" {
   source  = "george-richardson/personal-org/aws//modules/organization"
-  version = "1.0.0"
+  version = ">= 1.0.0"
 }
 
 module "organizational_unit" {
   source  = "george-richardson/personal-org/aws//modules/organizational_unit"
-  version = "1.0.0"
+  version = ">= 1.0.0"
 
-  name = "example" # TODO check this (and below) is valid without parent
+  name      = "example"
+  parent_id = module.organization.root_organizational_unit
 }
 ```
 
@@ -87,9 +93,10 @@ This config limits the OU to only allow actions for the IAM and S3 services.
 ```terraform
 module "organizational_unit" {
   source  = "george-richardson/personal-org/aws//modules/organizational_unit"
-  version = "1.0.0"
+  version = ">= 1.0.0"
 
   name           = "example"
+  parent_id      = module.organization.root_organizational_unit
   allow_services = ["iam", "s3"]
 }
 ```
@@ -103,23 +110,24 @@ This is the minimal config to create an Account.
 ```terraform
 module "account" {
   source  = "george-richardson/personal-org/aws//modules/account"
-  version = "1.0.0"
+  version = ">= 1.0.0"
 
   name  = "example"
   email = "example@example.org"
 }
 ```
 
-This config will create a budget alert at 20USD per month, sent to the account's configured email address.
+This config will create a billing alarm at 20USD per month, sent to the organization's billing alarm SNS topic.
 
 ```terraform
 module "account" {
   source  = "george-richardson/personal-org/aws//modules/account"
-  version = "1.0.0"
+  version = ">= 1.0.0"
 
-  name   = "example"
-  email  = "example@example.org"
-  budget = "20"
+  name                    = "example"
+  email                   = "example@example.org"
+  billing_alarm_threshold = "20"
+  billing_alarm_sns_topic = module.organization.billing_alarms_topic
 }
 ```
 
@@ -134,7 +142,7 @@ This config will create a SCP that blocks access by the root user and protects a
 ```terraform
 module "scp" {
   source  = "george-richardson/personal-org/aws//modules/scp"
-  version = "1.0.0"
+  version = ">= 1.0.0"
 
   block_root_user         = true
   protected_iam_resources = ["arn:aws:iam::*:role/myrole"]
@@ -148,11 +156,13 @@ module "scp" {
 Before using these modules it is recommended that you have the following in place:
 
 1. An AWS account to use as your Organization root account.  
-   Ideally, this would be a completely fresh account.
+   Ideally, this would be a completely fresh account. This account must also have [billing metrics](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/monitor_estimated_charges_with_cloudwatch.html#turning_on_billing_metrics) enabled for billing alarms to work.
 1. An S3 bucket to store your Terraform state in within the above account.
 1. An IAM user with limited priviliges to use to access your AWS estate. 
 
-2 and 3 can be provided with the [bootstrap](./bootstrap/) CloudFormation template and provisioning script.
+2 and 3 can be provided with the [bootstrap](./bootstrap/) CloudFormation template and provisioning script. The bootstrap template will also create a role intended to be used for least privilege deployment of these modules (by default it is named 'organization-admin').
+
+There is a [bootstrap.sh](./bootstrap/bootstrap.sh) helper script which can help you deploy the bootstrap CloudFormation template and then configure your new user's credentials and MFA.
 
 ## Tips and Tricks
 
@@ -167,15 +177,6 @@ Many email services (e.g. [gmail](https://support.google.com/a/users/answer/9308
 For example the addresses `joe.bloggs+aws.account.1@gmail.com` and `joe.bloggs+aws.account.2@gmail.com` can be used separately as root account email addresses, but both will send emails to the `joe.bloggs@gmail.com` inbox.
 
 If you are not able to use email aliases then the Acccount module's `budget_notification_emails` variable can be used to centralize the budget notifications. 
-
-### Deleting an account
-
-Deleting an AWS account in Terraform does not delete the account. If you wish to delete an account the following steps will need to be done: 
-
-1. Allow root user account access if currently blocked by ensuring the `block_root_user` variable is set to `false` on the Organization, Account and any OUs the Account is a member of. Unlike the other modules, the Organization module will have this set as `true` by default.
-1. [Reset the root user password](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys_retrieve.html).
-1. [Follow the AWS steps to terminate an account](https://aws.amazon.com/premiumsupport/knowledge-center/close-aws-account/).
-1. Delete the Account from your Terraform configuration.
 
 ## License
 
